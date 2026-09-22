@@ -33,13 +33,22 @@ main{min-width:0}.detail{max-width:1050px;margin:0 auto;padding:54px}
 .official{height:max-content;text-decoration:none;color:#fff;background:var(--blue);padding:11px 15px;border-radius:10px;font-weight:700;white-space:nowrap}
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:19px}.full{grid-column:1/-1}
 .label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:7px}.value{font-size:16px;line-height:1.65;font-weight:600}
+.summary-box{margin-top:26px;background:linear-gradient(135deg,#eef3ff,#f8faff);border:1px solid #dbe5ff;border-radius:16px;padding:22px}
+.summary-title{font-size:12px;color:var(--blue);font-weight:800;letter-spacing:.04em;margin-bottom:8px}
+.summary-text{font-size:16px;line-height:1.8;font-weight:600}
+.detail-section{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.detail-section h3{font-size:15px;margin:0;padding:16px 18px;border-bottom:1px solid var(--line);background:#fbfcfe}
+.detail-row{display:grid;grid-template-columns:190px minmax(0,1fr);gap:20px;padding:15px 18px;border-bottom:1px solid var(--line)}
+.detail-row:last-child{border-bottom:0}
+.detail-row-label{font-size:12px;color:var(--muted);font-weight:800}
+.detail-row-value{font-size:14px;line-height:1.75;font-weight:550}
 .note{margin-top:25px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;font-size:13px;line-height:1.7;color:var(--muted)}
 .mobilebar{display:none}.overlay{display:none}
 @media(max-width:860px){
   .app{display:block}aside{position:fixed;left:-370px;width:min(370px,90vw);z-index:20;transition:left .2s}aside.show{left:0}
   .mobilebar{display:flex;position:sticky;top:0;z-index:10;background:rgba(246,248,252,.95);padding:11px 14px;border-bottom:1px solid var(--line);gap:10px;align-items:center;font-weight:700}
   .mobilebar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px}.overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:15}
-  .detail{padding:28px 17px}.top{display:block}h2{font-size:24px}.official{display:inline-block;margin-top:16px}.cards{grid-template-columns:1fr}.full{grid-column:auto}
+  .detail{padding:28px 17px}.top{display:block}h2{font-size:24px}.official{display:inline-block;margin-top:16px}.cards{grid-template-columns:1fr}.full{grid-column:auto}.detail-row{grid-template-columns:1fr;gap:6px}
 }
 </style>
 </head>
@@ -62,12 +71,14 @@ main{min-width:0}.detail{max-width:1050px;margin:0 auto;padding:54px}
 <script src="./data-2.js"></script>
 <script src="./data-3.js"></script>
 <script src="./data-4.js"></script>
+<script src="./details.js"></script>
 <script>
-const DATA=window.SUBSIDIES||[];
+const DATA=window.enrichSubsidies?window.enrichSubsidies(window.SUBSIDIES||[]):(window.SUBSIDIES||[]);
 const PREFS=["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
 let selected=null;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const fmt=s=>esc(s).replace(/\n/g,'<br>');
 const norm=s=>String(s??'').toLowerCase().replace(/\s+/g,'');
 const filtered=()=>{const q=norm($('#q').value);return q?DATA.filter(x=>norm(Object.values(x).join(' ')).includes(q)):DATA};
 const item=x=>`<button class="item ${selected===x.id?'active':''}" data-id="${x.id}">${esc(x.name)}</button>`;
@@ -131,13 +142,40 @@ function show(id){
       <div><div class="kicker">${esc(x.region)}</div><h2>${esc(x.name)}</h2><span class="status ${statusClass(x.status)}">${esc(x.status)}</span></div>
       <a class="official" href="${esc(x.url)}" target="_blank" rel="noopener">公式ページを開く ↗</a>
     </div>
-    <div class="cards">
-      <div class="card full"><div class="label">システム開発等への利用</div><div class="value">${esc(x.usage)}</div></div>
-      <div class="card"><div class="label">個人事業主</div><div class="value">${esc(x.individual)}</div></div>
-      <div class="card"><div class="label">フリーランスへの発注</div><div class="value">${esc(x.freelancer)}</div></div>
-      <div class="card full"><div class="label">補助率・上限</div><div class="value">${esc(x.limit)}</div></div>
+    <div class="summary-box">
+      <div class="summary-title">制度概要</div>
+      <div class="summary-text">${fmt(x.summary)}</div>
     </div>
-    <div class="note">申請・発注前に、必ず公式ページと最新の公募要領で募集状況・対象経費・発注先要件・交付決定前の契約可否を確認してください。</div>`;
+
+    <div class="cards">
+      <div class="card"><div class="label">補助率・上限</div><div class="value">${fmt(x.limit)}</div></div>
+      <div class="card"><div class="label">個人事業主</div><div class="value">${fmt(x.individual)}</div></div>
+      <div class="card"><div class="label">フリーランスへの発注</div><div class="value">${fmt(x.freelancer)}</div></div>
+      <div class="card"><div class="label">システム開発との関係</div><div class="value">${fmt(x.usage)}</div></div>
+    </div>
+
+    <section class="detail-section">
+      <h3>対象・使い道</h3>
+      <div class="detail-row"><div class="detail-row-label">対象者</div><div class="detail-row-value">${fmt(x.target)}</div></div>
+      <div class="detail-row"><div class="detail-row-label">対象経費</div><div class="detail-row-value">${fmt(x.eligibleExpenses)}</div></div>
+      <div class="detail-row"><div class="detail-row-label">システム開発で使える例</div><div class="detail-row-value">${fmt(x.systemExamples)}</div></div>
+      <div class="detail-row"><div class="detail-row-label">主な要件</div><div class="detail-row-value">${fmt(x.requirements)}</div></div>
+    </section>
+
+    <section class="detail-section">
+      <h3>申請・実施スケジュール</h3>
+      <div class="detail-row"><div class="detail-row-label">申請期間</div><div class="detail-row-value">${fmt(x.applicationPeriod)}</div></div>
+      <div class="detail-row"><div class="detail-row-label">事業実施期間</div><div class="detail-row-value">${fmt(x.projectPeriod)}</div></div>
+      <div class="detail-row"><div class="detail-row-label">申請方法</div><div class="detail-row-value">${fmt(x.applicationMethod)}</div></div>
+    </section>
+
+    <section class="detail-section">
+      <h3>発注・併用の注意</h3>
+      <div class="detail-row"><div class="detail-row-label">交付決定前の発注</div><div class="detail-row-value">${fmt(x.preApproval)}</div></div>
+      <div class="detail-row"><div class="detail-row-label">他制度との併用</div><div class="detail-row-value">${fmt(x.combination)}</div></div>
+    </section>
+
+    <div class="note">制度内容は公募回や改定により変わる場合があります。申請・契約・発注前に、必ず公式ページと最新の公募要領・交付要綱を確認してください。</div>`;
 
   document.querySelectorAll('.item').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
   history.replaceState(null,'',`#${id}`);
