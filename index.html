@@ -43,7 +43,7 @@ main{min-width:0}.detail{max-width:1050px;margin:0 auto;padding:54px}
 <body>
 <div class="app">
   <aside id="side">
-    <div class="head"><small>2026年度 / 基準日 2026-09-22</small><h1>補助金・助成金<br>ブラウザ</h1></div>
+    <div class="head"><small>2026年度 / 基準日 2026-10-01</small><h1>補助金・助成金<br>ブラウザ</h1></div>
     <div class="search"><input id="q" placeholder="制度名・地域・用途で検索"></div>
     <div id="count"></div>
     <nav id="nav"></nav>
@@ -134,7 +134,7 @@ function show(id){
       <div class="card"><div class="label">フリーランスへの発注</div><div class="value">${esc(x.freelancer)}</div></div>
       <div class="card full"><div class="label">補助率・上限</div><div class="value">${esc(x.limit)}</div></div>
     </div>
-    <div class="note"><strong>基準日：2026年9月22日</strong><br>申請・発注前に、必ず公式ページと最新の公募要領で募集状況・対象経費・発注先要件・交付決定前の契約可否を確認してください。</div>`;
+    <div class="note">申請・発注前に、必ず公式ページと最新の公募要領で募集状況・対象経費・発注先要件・交付決定前の契約可否を確認してください。</div>`;
 
   document.querySelectorAll('.item').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
   history.replaceState(null,'',`#${id}`);
