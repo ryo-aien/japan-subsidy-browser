@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>補助金・助成金ブラウザ 2026</title>
+<style>
+:root{--bg:#f6f8fc;--panel:#fff;--text:#172033;--muted:#667085;--line:#e7eaf0;--blue:#2759e7;--nav:#101827}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,"Noto Sans JP","Yu Gothic",sans-serif;background:var(--bg);color:var(--text)}
+button,input{font:inherit}
+.app{display:grid;grid-template-columns:370px minmax(0,1fr);min-height:100vh}
+aside{height:100vh;position:sticky;top:0;background:var(--nav);color:#fff;display:flex;flex-direction:column}
+.head{padding:24px 22px 12px}.head small{color:#9da9c2}h1{font-size:21px;margin:6px 0 0;line-height:1.35}
+.search{padding:8px 14px 12px}.search input{width:100%;padding:12px 13px;border:1px solid #2a3854;border-radius:10px;background:#172238;color:#fff;outline:none}.search input:focus{border-color:#7692ff}
+#count{padding:0 18px 10px;color:#93a1bd;font-size:12px}
+nav{overflow:auto;padding:0 10px 24px}
+.group{border-top:1px solid rgba(255,255,255,.07)}
+.groupbtn,.subbtn{width:100%;border:0;background:transparent;color:#fff;text-align:left;display:flex;gap:9px;align-items:center;border-radius:8px}
+.groupbtn{padding:12px 10px;font-weight:700}.subbtn{padding:9px 8px;color:#d8e0f0}
+.groupbtn:hover,.subbtn:hover,.item:hover{background:rgba(255,255,255,.06)}
+.chev{width:14px;color:#8fa0be;transition:.15s}.open>.groupbtn .chev,.sub.open>.subbtn .chev{transform:rotate(90deg)}
+.children,.subchildren{display:none}.open>.children,.sub.open>.subchildren{display:block}.children{padding-left:18px}.subchildren{padding-left:18px}
+.badge{margin-left:auto;font-size:11px;background:#25324c;color:#c8d2e7;padding:3px 7px;border-radius:999px}
+.item{width:100%;border:0;background:transparent;color:#a9b5cc;text-align:left;padding:8px 9px;border-radius:7px;font-size:13px;line-height:1.45}.item.active{background:#2c4fad;color:#fff}
+main{min-width:0}.detail{max-width:1050px;margin:0 auto;padding:54px}
+.crumb{font-size:13px;color:var(--muted);margin-bottom:14px}.top{display:flex;justify-content:space-between;gap:24px;padding-bottom:26px;border-bottom:1px solid var(--line)}
+.kicker{font-size:13px;color:var(--blue);font-weight:700}h2{font-size:30px;line-height:1.35;margin:5px 0 12px}
+.status{display:inline-block;font-size:12px;font-weight:700;background:#eef2f7;padding:6px 10px;border-radius:999px}.status.live{background:#e9f8ef;color:#087742}.status.future{background:#fff3df;color:#9a5d00}
+.official{height:max-content;text-decoration:none;color:#fff;background:var(--blue);padding:11px 15px;border-radius:10px;font-weight:700;white-space:nowrap}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:19px}.full{grid-column:1/-1}
+.label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:7px}.value{font-size:16px;line-height:1.65;font-weight:600}
+.note{margin-top:25px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;font-size:13px;line-height:1.7;color:var(--muted)}
+.mobilebar{display:none}.overlay{display:none}
+@media(max-width:860px){
+  .app{display:block}aside{position:fixed;left:-370px;width:min(370px,90vw);z-index:20;transition:left .2s}aside.show{left:0}
+  .mobilebar{display:flex;position:sticky;top:0;z-index:10;background:rgba(246,248,252,.95);padding:11px 14px;border-bottom:1px solid var(--line);gap:10px;align-items:center;font-weight:700}
+  .mobilebar button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px}.overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:15}
+  .detail{padding:28px 17px}.top{display:block}h2{font-size:24px}.official{display:inline-block;margin-top:16px}.cards{grid-template-columns:1fr}.full{grid-column:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="side">
+    <div class="head"><small>2026年度 / 基準日 2026-09-22</small><h1>補助金・助成金<br>ブラウザ</h1></div>
+    <div class="search"><input id="q" placeholder="制度名・地域・用途で検索"></div>
+    <div id="count"></div>
+    <nav id="nav"></nav>
+  </aside>
+  <main>
+    <div class="mobilebar"><button id="menu">☰ 一覧</button><span>補助金・助成金ブラウザ</span></div>
+    <section class="detail" id="detail"></section>
+  </main>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<script src="./data-1.js"></script>
+<script src="./data-2.js"></script>
+<script src="./data-3.js"></script>
+<script src="./data-4.js"></script>
+<script>
+const DATA=window.SUBSIDIES||[];
+const PREFS=["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
+let selected=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const norm=s=>String(s??'').toLowerCase().replace(/\s+/g,'');
+const filtered=()=>{const q=norm($('#q').value);return q?DATA.filter(x=>norm(Object.values(x).join(' ')).includes(q)):DATA};
+const item=x=>`<button class="item ${selected===x.id?'active':''}" data-id="${x.id}">${esc(x.name)}</button>`;
+
+function captureOpenState(){
+  const openGroups=[...document.querySelectorAll('.group.open')].map(el=>el.dataset.key).filter(Boolean);
+  const openSubs=[...document.querySelectorAll('.sub.open')].map(el=>el.dataset.region).filter(Boolean);
+  return {openGroups,openSubs};
+}
+function renderNav(){
+  const state=captureOpenState();
+  const d=filtered();
+  $('#count').textContent=`${d.length}件`;
+  const national=d.filter(x=>x.scope==='国');
+  const pref=d.filter(x=>x.scope==='都道府県');
+  const searching=Boolean($('#q').value);
+  let h='';
+
+  if(national.length){
+    const open=searching||state.openGroups.includes('national')||!document.querySelector('#nav .group');
+    h+=`<div class="group ${open?'open':''}" data-key="national">
+      <button class="groupbtn"><span class="chev">›</span>国<span class="badge">${national.length}</span></button>
+      <div class="children">${national.map(item).join('')}</div>
+    </div>`;
+  }
+
+  if(pref.length){
+    const open=searching||state.openGroups.includes('pref');
+    h+=`<div class="group ${open?'open':''}" data-key="pref">
+      <button class="groupbtn"><span class="chev">›</span>都道府県<span class="badge">${pref.length}</span></button>
+      <div class="children">
+        ${PREFS.filter(p=>pref.some(x=>x.region===p)).map(p=>{
+          const a=pref.filter(x=>x.region===p);
+          const subOpen=searching||state.openSubs.includes(p);
+          return `<div class="sub ${subOpen?'open':''}" data-region="${esc(p)}">
+            <button class="subbtn"><span class="chev">›</span>${esc(p)}<span class="badge">${a.length}</span></button>
+            <div class="subchildren">${a.map(item).join('')}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  $('#nav').innerHTML=h||'<div style="padding:15px;color:#93a1bd">該当なし</div>';
+  document.querySelectorAll('.groupbtn').forEach(b=>b.onclick=()=>b.parentElement.classList.toggle('open'));
+  document.querySelectorAll('.subbtn').forEach(b=>b.onclick=()=>b.parentElement.classList.toggle('open'));
+  document.querySelectorAll('.item').forEach(b=>b.onclick=()=>show(b.dataset.id));
+}
+
+function statusClass(s){
+  if(/予定|次回/.test(s))return'future';
+  if(!/終了|停止/.test(s)&&/受付|実施|～|公開中|予算到達/.test(s))return'live';
+  return'';
+}
+function show(id){
+  const x=DATA.find(v=>v.id===id); if(!x)return;
+  selected=id;
+  $('#detail').innerHTML=`
+    <div class="crumb">${esc(x.scope)} / ${esc(x.region)}</div>
+    <div class="top">
+      <div><div class="kicker">${esc(x.region)}</div><h2>${esc(x.name)}</h2><span class="status ${statusClass(x.status)}">${esc(x.status)}</span></div>
+      <a class="official" href="${esc(x.url)}" target="_blank" rel="noopener">公式ページを開く ↗</a>
+    </div>
+    <div class="cards">
+      <div class="card full"><div class="label">システム開発等への利用</div><div class="value">${esc(x.usage)}</div></div>
+      <div class="card"><div class="label">個人事業主</div><div class="value">${esc(x.individual)}</div></div>
+      <div class="card"><div class="label">フリーランスへの発注</div><div class="value">${esc(x.freelancer)}</div></div>
+      <div class="card full"><div class="label">補助率・上限</div><div class="value">${esc(x.limit)}</div></div>
+    </div>
+    <div class="note"><strong>基準日：2026年9月22日</strong><br>申請・発注前に、必ず公式ページと最新の公募要領で募集状況・対象経費・発注先要件・交付決定前の契約可否を確認してください。</div>`;
+
+  document.querySelectorAll('.item').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
+  history.replaceState(null,'',`#${id}`);
+  $('#side').classList.remove('show');
+  $('#overlay').classList.remove('show');
+}
+$('#q').oninput=renderNav;
+$('#menu').onclick=()=>{$('#side').classList.add('show');$('#overlay').classList.add('show')};
+$('#overlay').onclick=()=>{$('#side').classList.remove('show');$('#overlay').classList.remove('show')};
+renderNav();
+const hash=location.hash.slice(1);
+show(DATA.some(x=>x.id===hash)?hash:DATA[0]?.id);
+</script>
+</body>
+</html>
